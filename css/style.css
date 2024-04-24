@@ -1,0 +1,157 @@
+/* 样式 */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image: url("../img/bg.jpg");
+    background-size: 100vw 100vh;
+    background-repeat: no-repeat;
+}
+
+#musicPlayer {
+	color: #0055ff;
+	font-weight: 30rem;
+    max-width: 100vw; /* 使用视口宽度作为最大宽度 */
+    background-color: rgba(255, 255, 255, 0.3); /* 添加背景颜色 */
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+}
+#songInfo {
+    text-align: center;
+    margin-top: 10px;
+}
+#songTitle {
+    font-size: 20px;
+    font-weight: bold;
+}
+#artist {
+    color: #666;
+}
+#musicList {
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    padding-top: 20px;
+    width: calc(100% - 2px); /* 考虑边框线的宽度 */
+    max-width: 100vw; /* 使用视口宽度作为最大宽度 */
+    overflow-x: auto; /* 添加水平滚动条 */
+    white-space: nowrap; /* 防止文本换行 */
+}
+#musicList ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+#musicList li {
+    padding: 10px 0;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+#musicList li:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+#musicList ul li.selected {
+    background-color: rgba(255, 255, 255, 1);
+    color: #000; /* 选中时的文字颜色 */
+}
+#musicList ul li.active {
+    background-color: rgba(107, 107, 109, 0.3); /* 选中时的背景颜色 */
+    color: #333; /* 选中时的文字颜色 */
+    font-size: 22px; /* 选中时的文字大小 */
+    transition: all 0.3s ease; /* 添加过渡效果，使样式改变平滑 */
+}
+#controlsContainer {
+    position: fixed;
+    bottom: 20px;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 10px 20px;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
+    z-index: 9999;
+	max-width: 100vw; /* 使用视口宽度作为最大宽度 */
+    width: 90%;
+}
+#musicInfo {
+	color: #55aaff;
+	font-size: 50%;
+}
+#progressBar {
+    width: 100%;
+    height: 6px;
+    background-color: #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 10px; /* 添加一些上边距 */
+}
+#progress {
+    width: 0;
+    height: 100%;
+    background-color: #007bff;
+    transition: width 0.3s ease; /* 添加过渡效果，使进度条平滑变化 */
+}
+/* 收纳按钮 */
+#collapseButton {
+    margin-left: auto; /* 将收纳按钮推送到最右侧 */
+    background: none; /* 移除按钮的背景色 */
+    border: none; /* 移除按钮的边框 */
+    cursor: pointer; /* 设置光标样式为手型 */
+    font-size: 24px; /* 设置按钮图标的大小 */
+    color: #fff; /* 设置按钮图标的颜色 */
+    outline: none; /* 移除按钮的点击时的外边框 */
+}
+
+/* 音量按钮样式 */
+.volumeButton {
+    position: relative;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+#volumeIcon {
+    cursor: pointer;
+}
+
+#volumeBar {
+    position: absolute;
+    bottom: calc(100% + 10px); /* 将音量条定位到按钮的上方，留出一些空间 */
+    left: 10%; /* 居中 */
+    transform: translateX(-50%); /* 水平居中 */
+    visibility: hidden; /* 初始隐藏 */
+    opacity: 0; /* 初始透明度为0 */
+    transition: visibility 0.3s, opacity 0.3s; /* 添加过渡动画 */
+}
+
+.volumeButton:hover #volumeBar, /* 当鼠标悬停时显示音量条 */
+.volumeButton:focus-within #volumeBar {
+    visibility: visible; /* 显示音量条 */
+    opacity: 1;
+}
+
+/* 音量条样式 */
+#volumeBar {
+    -webkit-appearance: none; /* 去除默认样式 */
+    width: 10px; /* 设置宽度 */
+    height: 100px; /* 设置高度 */
+    background: #007bff; /* 设置背景颜色 */
+    border-radius: 5px; /* 设置圆角 */
+    cursor: pointer; /* 添加光标指针 */
+    position: absolute; /* 绝对定位 */
+    bottom: calc(100% + 10px); /* 放置在按钮的上方 */
+    left: 50%; /* 居中 */
+    transform: translateX(-50%); /* 水平居中 */
+    -webkit-writing-mode: vertical-lr; /* 从底部向上的垂直文本 */
+    writing-mode: vertical-lr;
+    direction: rtl; /* 从右到左 */
+    appearance: slider-vertical; /* 垂直滑动条 */
+    transform-origin: bottom; /* 以底部为中心旋转 */
+}
+
+/* 滑块样式 */
+#volumeBar::-webkit-slider-thumb {
+    -webkit-appearance: none; /* 去除默认样式 */
+    width: 20px; /* 设置滑块宽度 */
+    height: 20px; /* 设置滑块高度 */
+    background: #fff; /* 设置滑块颜色 */
+    border-radius: 50%; /* 设置圆形滑块 */
+    cursor: pointer; /* 添加光标指针 */
+}
+
