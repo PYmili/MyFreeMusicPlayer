@@ -60,7 +60,7 @@ class DatabaseManager:
                 CREATE TABLE music_list (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     music_name TEXT,
-                    music_img BLOB,
+                    music_img TEXT,
                     music_data BLOB,
                     upload_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )

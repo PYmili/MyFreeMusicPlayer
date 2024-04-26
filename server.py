@@ -2,8 +2,8 @@ import os
 import json
 import base64
 from typing import *
-from fastapi import FastAPI, Response, Request
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Request, UploadFile, File, Form
+from fastapi.responses import FileResponse, JSONResponse
 from loguru import logger
 from sqlite_operation import MusicListOperation, UserOperation
 
@@ -63,7 +63,7 @@ async def inspect_user_info(
 
 
 @app.post("/get_my_music")
-async def get_my_music(request: Request) -> Response:
+async def get_my_music(request: Request) -> JSONResponse:
     """
     通过用户的信息获取到音乐列表
     :param request: Request 请求对象
@@ -74,10 +74,7 @@ async def get_my_music(request: Request) -> Response:
     params = await getParams(request)
     if not params:
         result["content"] = "参数缺少！"
-        return Response(
-            content=json.dumps(result),
-            media_type="application/json"
-        )
+        return JSONResponse(result)
 
     # 获取请求参数
     user_name = params.get("user_name")
@@ -86,39 +83,27 @@ async def get_my_music(request: Request) -> Response:
     # 检查参数是否完整
     if not all([user_name, key]):
         result["content"] = "参数错误！"
-        return Response(
-            content=json.dumps(result),
-            media_type="application/json"
-        )
+        return JSONResponse(result)
     
     # 检查用户的信息是否真实
     inspect_result = await inspect_user_info(user_name, key)
     if inspect_result is False:
         logger.error("用户信息错误！")
         result["content"] = "用户信息错误！"
-        return Response(
-            content=json.dumps(result),
-            media_type="application/json"
-        )
+        return JSONResponse(result)
     logger.info("用户信息准确。")
         
     # 读取sqlite数据库
     with MusicListOperation.DatabaseManager() as DBmanager:
         list_data = DBmanager.get_records_by_range(end=end)
         if not list_data:
-            return Response(
-                content=json.dumps(result),
-                media_type="application/json"
-            )
+            return JSONResponse(result)
         
         music_list = await handle_music_list(list_data)
         result["content"] = music_list
 
     result['code'] = 200
-    return Response(
-        content=json.dumps(result),
-        media_type="application/json"
-    )
+    return JSONResponse(result)
 
 
 async def handle_music_list(music_list: List[Dict]) -> List:
@@ -167,70 +152,57 @@ async def download_temp_file(filename: str) -> FileResponse:
 
 
 @app.post("/upload_music")
-async def upload_music(request: Request) -> Response:
+async def upload_music(
+    user_name: str = Form(...),
+    key: str = Form(...),
+    music_name: str = Form(...),
+    # music_img: str = Form(...),
+    upload_file: UploadFile = File(...)
+) -> JSONResponse:
     """
     上传音乐至数据库
     :return dict
     """
     result = {"code": 404, "content": "null"}
-
-    # 获取请求参数并检查
-    params = await getParams(request)
-    if not params:
-        result["content"] = "参数缺少！"
-        return Response(
-            content=json.dumps(result),
-            media_type="application/json"
-        )
     
     # 用户信息请求参数
-    user_name = params.get("user_name")
-    key = params.get("key")
     if not all([user_name, key]):
         result["content"] = "用户名或key缺少！"
-        return Response(
-            content=json.dumps(result),
-            media_type="application/json"
-        )
+        return JSONResponse(result)
     inspect_result = inspect_user_info(user_name, key)
     if inspect_result is False:
         result["content"] = "用户信息错误！"
-        return Response(
-            content=json.dumps(result),
-            media_type="application/json"
-        )
+        return JSONResponse(result)
     
-    # 音乐数据
-    music_name = params.get("music_name")
-    music_img = params.get("music_img")
-    base64_data = params.get("base64_data")
-    if not all([music_name, base64_data]):
-        result["content"] = "音乐名称和base64数据为必填项。"
-        return Response(
-            content=json.dumps(result),
-            media_type="application/json"
-        )
-    # 对base64数据解码
-    decode_byte = base64.b64decode(base64_data)
+    # 检查音乐名称
+    if not music_name:
+        result["content"] = "音乐名称为必填项。"
+        return JSONResponse(result)
+    # 检查音乐数据
+    if not upload_file:
+        result["content"] = "音乐数据未上传！"
+        return JSONResponse(result)
+    
+    # 读取音乐文件数据
+    try:
+        music_data = await upload_file.read()
+    except Exception as e:
+        logger.error(e)
+        result["content"] = "处理文件数据发生错误！"
+        return JSONResponse(result)
 
     # 将新数据插入数据库
     with MusicListOperation.DatabaseManager() as db_manager:
         insert_result = db_manager.insert_data(
             music_name = music_name,
-            music_data = decode_byte,
-            music_img = music_img
+            music_data = music_data
+            # music_img = music_img
         )
         if insert_result is False:
             result['code'] = 500
             result["content"] = "添加音乐失败！"
-            return Response(
-                content=json.dumps(result),
-                media_type="application/app"
-            )
+            return JSONResponse(result)
     
     result['code'] = 200
     result["content"] = "添加成功！"
-    return Response(
-        content=json.dumps(result),
-        media_type="application/app"
-    )
+    return JSONResponse(result)
