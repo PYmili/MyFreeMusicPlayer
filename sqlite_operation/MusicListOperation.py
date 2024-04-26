@@ -3,7 +3,6 @@ import sqlite3
 from dotenv import load_dotenv
 from loguru import logger
 from typing import Union, List, Dict
-from datetime import datetime
 
 class DatabaseManager:
     def __init__(self) -> None:
@@ -14,7 +13,7 @@ class DatabaseManager:
         load_dotenv("sqlite_operation/.env")
 
         # 获取数据库文件路径
-        self.DB_NAME = os.getenv("DB_NAME")
+        self.DB_NAME = os.getenv("MUSIC_LIST_DB_NAME")
         self.DB_DIR = os.getenv("DB_DIR")
         self.db_path = os.path.join(self.DB_DIR, self.DB_NAME)
         self.conn = None
@@ -56,20 +55,18 @@ class DatabaseManager:
         """
         如果表不存在，则创建表
         """
-        if not self.table_exists("user_music"):
+        if not self.table_exists("music_list"):
             self.cursor.execute("""
-                CREATE TABLE user_music (
-                    userId INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_name TEXT NOT NULL,
-                    key TEXT NOT NULL,
-                    music_img BLOB,
+                CREATE TABLE music_list (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
                     music_name TEXT,
+                    music_img BLOB,
                     music_data BLOB,
                     upload_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
             self.conn.commit()
-            logger.info("表 user_music 创建成功")
+            logger.info("表 music_list 创建成功")
 
     def insert_data(self, **kwargs) -> bool:
         """
@@ -77,8 +74,8 @@ class DatabaseManager:
         :param kwargs: dict 包含要插入的数据
         :return: bool 插入成功返回True，否则返回False
         """
-        # 检查用户名和密钥是否为空
-        if not kwargs.get("user_name") or not kwargs.get("key"):
+        # 检查音乐名和音乐数据是否为空
+        if not kwargs.get("music_name") or not kwargs.get("music_data"):
             logger.error("用户名和密钥不能为空")
             return False
         
@@ -86,7 +83,7 @@ class DatabaseManager:
         columns = ', '.join(kwargs.keys())
         placeholders = ', '.join('?' * len(kwargs))
         sql = f"""
-            INSERT INTO user_music ({columns}) VALUES ({placeholders})
+            INSERT INTO music_list ({columns}) VALUES ({placeholders})
         """
         values = tuple(kwargs.values())
 
@@ -99,35 +96,29 @@ class DatabaseManager:
             logger.error(f"数据插入失败: {e}")
             return False
 
-    def get_records_by_user(
+    def get_records_by_range(
             self,
-            user_identifier: Union[int, str],
             start: int = 0,
             end: Union[int, None] = None
         ) -> List[Dict[str, any]]:
         """
-        通过用户名或用户ID获取指定范围的记录
-        :param user_identifier: Union[int, str] 用户名或用户ID
+        获取指定范围的记录
         :param start: int 范围的起始位置，默认为0
         :param end: int 范围的结束位置，默认为None（即检索所有记录）
         :return: List[Dict[str, any]] 包含记录的列表，每个记录都是一个字典
         """
         # 构建SQL查询语句
         if end is None:
-            sql = """
-                SELECT * FROM user_music 
-                WHERE userId = ? OR user_name = ?
-            """
+            sql = """SELECT * FROM music_list"""
             # 执行查询
-            self.cursor.execute(sql, (user_identifier, user_identifier))
+            self.cursor.execute(sql)
         else:
             sql = """
-                SELECT * FROM user_music 
-                WHERE userId = ? OR user_name = ? 
-                LIMIT ? OFFSET ?
+                SELECT * FROM music_list 
+                    WHERE LIMIT ? OFFSET ?
             """
             # 执行查询
-            self.cursor.execute(sql, (user_identifier, user_identifier, end - start, start))
+            self.cursor.execute(sql, (end - start, start))
         
         rows = self.cursor.fetchall()
 
@@ -135,13 +126,10 @@ class DatabaseManager:
         result = []
         for row in rows:
             record = {
-                "userId": row[0],
-                "user_name": row[1],
-                "key": row[2],
-                "music_img": row[3],
-                "music_name": row[4],
-                "music_data": row[5],
-                "upload_time": row[6]
+                "music_name": row[1],
+                "music_img": row[2],
+                "music_data": row[3],
+                "upload_time": row[4]
             }
             result.append(record)
 
@@ -153,8 +141,6 @@ if __name__ == "__main__":
     with DatabaseManager() as db_manager:
         # 插入新数据示例
         success = db_manager.insert_data(
-            user_name="PYmili",
-            key="key1",
             music_name="test",
             music_data=b''
         )
