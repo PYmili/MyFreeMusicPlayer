@@ -60,8 +60,9 @@ class DatabaseManager:
                 CREATE TABLE music_list (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     music_name TEXT,
-                    music_img TEXT,
-                    music_data BLOB,
+                    music_url TEXT DEFAULT NULL,
+                    music_img TEXT DEFAULT NULL,
+                    music_data BLOB DEFAULT NULL,
                     upload_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
@@ -75,8 +76,8 @@ class DatabaseManager:
         :return: bool 插入成功返回True，否则返回False
         """
         # 检查音乐名和音乐数据是否为空
-        if not kwargs.get("music_name") or not kwargs.get("music_data"):
-            logger.error("用户名和密钥不能为空")
+        if not kwargs.get("music_name") or not kwargs.get("music_url"):
+            logger.error("用户名和音乐链接不能为空")
             return False
         
         # 构建SQL语句和参数
@@ -127,9 +128,10 @@ class DatabaseManager:
         for row in rows:
             record = {
                 "music_name": row[1],
-                "music_img": row[2],
-                "music_data": row[3],
-                "upload_time": row[4]
+                "music_url": row[2],
+                "music_img": row[3],
+                "music_data": row[4],
+                "upload_time": row[5]
             }
             result.append(record)
 
@@ -142,7 +144,7 @@ if __name__ == "__main__":
         # 插入新数据示例
         success = db_manager.insert_data(
             music_name="test",
-            music_data=b''
+            music_url="https://www.xxx.com/"
         )
         if success:
             logger.info("插入成功")
@@ -150,5 +152,5 @@ if __name__ == "__main__":
             logger.error("插入失败")
         
         # 获取指定用户的记录示例
-        records = db_manager.get_records_by_user("PYmili", 0, 10)
+        records = db_manager.get_records_by_user("test", 0, 10)
         logger.info(f"用户记录: {records}")

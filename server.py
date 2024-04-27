@@ -124,14 +124,21 @@ async def handle_music_list(music_list: List[Dict]) -> List:
     # 开始处理音乐列表
     for music in music_list:
         temp_file = os.path.join(MUSIC_TEMP_DIR, music['music_name'])
-        if os.path.isfile(temp_file) is False:
-            with open(temp_file, "wb") as wfp:
-                wfp.write(music['music_data'])
+        # 文件数据存在，则缓存到本地并生成链接
+        if music['music_data']:
+            if os.path.isfile(temp_file) is False:
+                with open(temp_file, "wb") as wfp:
+                    wfp.write(music['music_data'])
+            music_url = f"/music_temp/{music['music_name']}"
+        # 文件数据不存在，检测是否已存在音乐链接
+        elif music['music_url']:
+            music_url = music['music_url']
 
         result.append({
             "music_name": music['music_name'],
             "music_img": music['music_img'],
-            "music_url": f"/music_temp/{music['music_name']}"
+            "music_url": music_url,
+            "upload_time": music['upload_time']
         })
     
     return result
@@ -156,8 +163,8 @@ async def upload_music(
     user_name: str = Form(...),
     key: str = Form(...),
     music_name: str = Form(...),
-    # music_img: str = Form(...),
-    upload_file: UploadFile = File(...)
+    music_url: str = Form(...),
+    upload_file: Union[UploadFile, None] = None
 ) -> JSONResponse:
     """
     上传音乐至数据库
@@ -178,25 +185,23 @@ async def upload_music(
     if not music_name:
         result["content"] = "音乐名称为必填项。"
         return JSONResponse(result)
-    # 检查音乐数据
-    if not upload_file:
-        result["content"] = "音乐数据未上传！"
-        return JSONResponse(result)
     
-    # 读取音乐文件数据
-    try:
-        music_data = await upload_file.read()
-    except Exception as e:
-        logger.error(e)
-        result["content"] = "处理文件数据发生错误！"
-        return JSONResponse(result)
+    music_data = None
+    if upload_file:
+        # 读取音乐文件数据
+        try:
+            music_data = await upload_file.read()
+        except Exception as e:
+            logger.error(e)
+            result["content"] = "处理文件数据发生错误！"
+            return JSONResponse(result)
 
     # 将新数据插入数据库
     with MusicListOperation.DatabaseManager() as db_manager:
         insert_result = db_manager.insert_data(
             music_name = music_name,
-            music_data = music_data
-            # music_img = music_img
+            music_data = music_data if music_data else None,
+            music_url = music_url if music_url else None
         )
         if insert_result is False:
             result['code'] = 500
