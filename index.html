@@ -4,72 +4,91 @@
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <link rel="stylesheet" type="text/css" href="css/style.css">
-	<link rel="stylesheet" type="text/css" href="css/iconfont.css">
+    <link rel="stylesheet" type="text/css" href="css/iconfont.css">
+    <!-- 引入 Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <title>MyFreeMusicPlayer</title>
 </head>
 <body>
+    <!-- 用户头像 -->
+    <div id="userAvatar" class="user-avatar">
+        <img src="img/icon.png" alt="User Avatar">
+    </div>
+    
+    <!-- 弹出菜单容器 -->
+    <div id="menuContainer" class="menu-container">
+        <ul>
+            <li><i class="fas fa-cog"></i> 设置</li>
+			<li><i class="fas fa-sign-in-alt"></i> 登录</li>
+			<li><i class="fas fa-info-circle"></i> 关于</li>
+        </ul>
+    </div>
     <!-- 页面内容 -->
     <div id="musicPlayer">
         <!-- 音乐列表 -->
         <div id="musicList">
             <ul>
-                <li class="active" data-src="audio/i walk this earth all by myself.mp3">i walk this earth all by myself</li>
-				<li data-src="">test</li>
-				
+                <li class="active" data-src="">NULL</li>
             </ul>
         </div>
     </div>
 
-	<!-- 播放控制区域 -->
-	<div id="controlsContainer">
-		<span id="prevButton" class="iconfont icon-shangyishou"></span>
-		<span id="playPauseButton" class="iconfont icon-bofang"></span>
-		<span id="nextButton" class="iconfont icon-xiayishou"></span>
-		<span id="repeatButton" class="iconfont icon-duoxunhuan"></span>
-		<div class="volumeButton" id="volumeButton"> <!-- 音量调节按钮 -->
-			<span id="volumeIcon" class="iconfont icon-24gf-volumeHigh"></span> <!-- 音量图标 -->
-			<input type="range" id="volumeBar" value="100" min="0" max="100" orient="vertical"> <!-- 音量调节条 -->
-		</div>
-		<span id="musicInfo"></span> <!-- 添加用于显示音乐信息的容器 -->
-		<span id="collapseButton" class="iconfont icon-xiangxia"></span> <!-- 收纳按钮 -->
-		<input type="range" id="progressBar" value="0" min="0" max="100">
-	</div>
-
-	<script src="js/player.js"></script>
+    <!-- 播放控制区域 -->
+    <div id="controlsContainer">
+        <span id="albumCover">
+            <img src="img/icon.png" alt="专辑封面" id="coverImage">
+        </span>
+        <span id="prevButton" class="iconfont icon-shangyishou"></span>
+        <span id="playPauseButton" class="iconfont icon-bofang"></span>
+        <span id="nextButton" class="iconfont icon-xiayishou"></span>
+        <span id="repeatButton" class="iconfont icon-duoxunhuan"></span>
+        <div class="volumeButton" id="volumeButton"> <!-- 音量调节按钮 -->
+            <span id="volumeIcon" class="iconfont icon-24gf-volumeHigh"></span> <!-- 音量图标 -->
+            <input type="range" id="volumeBar" value="100" min="0" max="100" orient="vertical"> <!-- 音量调节条 -->
+        </div>
+        <span id="musicInfo"></span> <!-- 添加用于显示音乐信息的容器 -->
+        <!-- 使用 Font Awesome 图标作为收纳按钮 -->
+        <span id="collapseButton" class="fas fa-chevron-up"></span>
+        <input type="range" id="progressBar" value="0" min="0" max="100">
+    </div>
+    
+    <script src="js/music_list.js"></script>
+    <script src="js/menu.js"></script>
+    <script src="js/player.js"></script>
     <script type="text/javascript">
-		// 获取收纳按钮和控制区域元素
-		var collapseButton = document.getElementById('collapseButton');
-		var controlsContainer = document.getElementById('controlsContainer');
-		var controlElements = document.querySelectorAll('#controlsContainer > *:not(#collapseButton)');
-
-		// 定义控制区域的收纳状态，默认为展开状态
-		var isCollapsed = false;
-
-		// 点击收纳按钮的事件处理函数
-		collapseButton.addEventListener('click', function() {
-			// 切换收纳状态
-			isCollapsed = !isCollapsed;
-
-			if (isCollapsed) {
-				// 如果是收起状态，隐藏控制区域的子元素
-				controlElements.forEach(function(element) {
-					element.style.display = 'none';
-					element.style.width = collapseButton.offsetWidth + 'px';
-				});
-				collapseButton.classList.remove('icon-xiangxia'); // 切换按钮图标为展开图标
-				collapseButton.classList.add('icon-xiangshang');
-			} else {
-				// 如果是展开状态，显示控制区域的子元素
-				controlElements.forEach(function(element) {
-					element.style.display = 'initial';
-					element.style.width = '90%';
-				});
-				collapseButton.classList.remove('icon-xiangshang'); // 切换按钮图标为收起图标
-				collapseButton.classList.add('icon-xiangxia');
-			}
-		});
-
+        // 定义控制区域的收纳状态，默认为展开状态
+        var isCollapsed = false;
+    
+        // 获取收纳按钮和控制区域元素
+        var collapseButton = document.getElementById('collapseButton');
+        var controlsContainer = document.getElementById('controlsContainer');
+        var controlElements = document.querySelectorAll('#controlsContainer > *:not(#collapseButton)');
+    
+        // 点击收纳按钮的事件处理函数
+        collapseButton.addEventListener('click', function() {
+            // 切换收纳状态
+            isCollapsed = !isCollapsed;
+    
+            if (isCollapsed) {
+                // 如果是收起状态，隐藏控制区域的子元素
+                controlElements.forEach(function(element) {
+                    element.style.display = 'none';
+                    element.style.width = collapseButton.offsetWidth + 'px';
+                });
+                collapseButton.classList.remove('fa-chevron-up'); // 切换按钮图标为展开图标
+                collapseButton.classList.add('fa-chevron-down');
+            } else {
+                // 如果是展开状态，显示控制区域的子元素
+                controlElements.forEach(function(element) {
+                    element.style.display = 'initial';
+                    element.style.width = '90%';
+                });
+                collapseButton.classList.remove('fa-chevron-down'); // 切换按钮图标为收起图标
+                collapseButton.classList.add('fa-chevron-up');
+            }
+        });
+    
         document.addEventListener('plusready', function(){
             // 在此事件中可以调用 Plus API
         });

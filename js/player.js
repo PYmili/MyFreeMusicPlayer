@@ -6,6 +6,30 @@ document.addEventListener('DOMContentLoaded', function() {
     var musicList = $('#musicList ul li'); // 获取音乐列表
     var repeatButton = $('#repeatButton'); // 获取重复播放按钮
 
+    function playMusic(src) {
+        if (!isPlaying) { // 如果当前未播放音乐，则开始播放
+            console.log('开始播放音乐');
+            if (!audio.src && src) {
+                audio.src = src;
+                musicList.first().addClass('active'); // 添加选中效果
+            }
+            if (!isNaN(audio.duration) && isFinite(audio.duration) && audio.duration !== 0) {
+                audio.currentTime = (progressBar.value * audio.duration) / 100; // 设置音频播放位置
+            }
+            console.log("播放音乐：" + audio.src);
+            audio.play();
+            isPlaying = true;
+            // 切换按钮图标
+            $('#playPauseButton').removeClass("icon-bofang").addClass("icon-zanting");
+        } else { // 如果当前正在播放音乐，则暂停
+            console.log('暂停播放音乐');
+            audio.pause();
+            isPlaying = false;
+            // 切换按钮图标
+            $('#playPauseButton').removeClass("icon-zanting").addClass("icon-bofang");
+        }
+    }
+
     // 在播放音乐时更新音乐信息显示
     audio.onplay = function() {
         var currentSong = $('#musicList ul li.active').text();
@@ -14,60 +38,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 播放/暂停按钮点击事件
     $('#playPauseButton').on('click', function() {
-        if (!isPlaying) { // 如果当前未播放音乐，则开始播放
-            console.log('开始播放音乐');
-            var firstMusicSrc = musicList.first().data('src');
-            if (!audio.src && firstMusicSrc) {
-                audio.src = firstMusicSrc;
-                musicList.first().addClass('active'); // 添加选中效果
-            }
-            if (!isNaN(audio.duration) && isFinite(audio.duration) && audio.duration !== 0) {
-                audio.currentTime = (progressBar.value * audio.duration) / 100; // 设置音频播放位置
-            }
-            audio.play();
-            isPlaying = true;
-			// 切换按钮图标
-            $('#playPauseButton').removeClass("icon-bofang");
-			$('#playPauseButton').addClass("icon-zanting");
-        } else { // 如果当前正在播放音乐，则暂停
-            console.log('暂停播放音乐');
-            audio.pause();
-            isPlaying = false;
-			// 切换按钮图标
-            $('#playPauseButton').removeClass("icon-zanting");
-			$('#playPauseButton').addClass("icon-bofang");
-        }
+        var currentSrc = $('#musicList ul li.active').data('src');
+        playMusic(currentSrc);
     });
 
     // 重复播放按钮点击事件
     repeatButton.on('click', function() {
         if (audio.loop) {
             audio.loop = false;
-            $(this).removeClass("icon-danxunhuan");
-			$(this).addClass("icon-duoxunhuan");
+            console.log("按顺序播放");
+            $(this).removeClass("icon-danxunhuan").addClass("icon-duoxunhuan");
         } else {
             audio.loop = true;
-            $(this).removeClass("icon-duoxunhuan");
-			$(this).addClass("icon-danxunhuan");
+            console.log("单曲循环");
+            $(this).removeClass("icon-duoxunhuan").addClass("icon-danxunhuan");
         }
     });
 
-    // 模拟音乐播放结束事件
+    // 音乐播放结束事件
     audio.onended = function() {
         console.log('音乐播放结束');
         if (!audio.loop) { // 如果未设置为重复播放，则自动跳转到列表中的下一首音乐
             var nextMusic = $('#musicList ul li.active').next();
             if (nextMusic.length > 0) { // 检查是否存在下一首音乐
-                audio.src = nextMusic.data('src');
+                var nextSrc = nextMusic.data('src');
+                playMusic(nextSrc);
                 nextMusic.addClass('active').siblings().removeClass('active'); // 设置选中效果
-                audio.play();
             } else {
                 // 如果没有下一首音乐，停止播放并重置播放状态
                 audio.pause();
                 audio.currentTime = 0;
                 isPlaying = false;
-                $('#playPauseButton').removeClass("icon-zanting");
-                $('#playPauseButton').addClass("icon-bofang");
+                $('#playPauseButton').removeClass("icon-zanting").addClass("icon-bofang");
             }
         }
     };
@@ -107,23 +109,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (musicSrc) {
             audio.pause();
             isPlaying = false;
-            $('#playPauseButton').removeClass("icon-zanting");
-            $('#playPauseButton').addClass("icon-bofang");
+            $('#playPauseButton').removeClass("icon-zanting").addClass("icon-bofang");
             
             console.log('选择了音乐：' + musicSrc);
             
-            audio.src = musicSrc;
-            if (!isNaN(audio.duration) && isFinite(audio.duration) && audio.duration !== 0) {
-                audio.currentTime = (progressBar.value * audio.duration) / 100; // 设置音频播放位置
-            }
-            audio.play();
-            isPlaying = true;
-            $('#playPauseButton').removeClass("icon-bofang");
-            $('#playPauseButton').addClass("icon-zanting")
-            
-            // 移除其他项的选中状态，并将当前项设置为选中状态
-            musicList.removeClass('active'); // 先移除所有项的 active 类
-            $(this).addClass('active'); // 添加选中的音乐项的 active 类
+            playMusic(musicSrc);
+            $(this).addClass('active').siblings().removeClass('active'); // 设置选中效果
             $('#musicInfo').text($(this).text()); // 更新音乐信息显示
         } else {
             alert("获取数据失败！");
@@ -134,25 +125,15 @@ document.addEventListener('DOMContentLoaded', function() {
     $('#prevButton').on('click', function() {
         var prevMusic = $('#musicList ul li.active').prev();
         if (prevMusic.length > 0) { // 检查是否存在上一首音乐
-            var musicSrc = prevMusic.data('src');
-            console.log('选择了上一首音乐：' + musicSrc);
+            var prevSrc = prevMusic.data('src');
+            console.log('选择了上一首音乐：' + prevSrc);
             
             audio.pause();
             isPlaying = false;
-            $('#playPauseButton').removeClass("icon-zanting");
-            $('#playPauseButton').addClass("icon-bofang");
+            $('#playPauseButton').removeClass("icon-zanting").addClass("icon-bofang");
             
-            audio.src = musicSrc;
-            if (!isNaN(audio.duration) && isFinite(audio.duration) && audio.duration !== 0) {
-                audio.currentTime = (progressBar.value * audio.duration) / 100; // 设置音频播放位置
-            }
-            audio.play();
-            isPlaying = true;
-            $('#playPauseButton').removeClass("icon-bofang");
-            $('#playPauseButton').addClass("icon-zanting")
-            
-            musicList.removeClass('active'); // 先移除所有项的 active 类
-            prevMusic.addClass('active'); // 添加选中的音乐项的 active 类
+            playMusic(prevSrc);
+            prevMusic.addClass('active').siblings().removeClass('active'); // 设置选中效果
             $('#musicInfo').text(prevMusic.text()); // 更新音乐信息显示
         } else {
             console.log('已经是列表中的第一首音乐');
@@ -163,25 +144,15 @@ document.addEventListener('DOMContentLoaded', function() {
     $('#nextButton').on('click', function() {
         var nextMusic = $('#musicList ul li.active').next();
         if (nextMusic.length > 0) { // 检查是否存在下一首音乐
-            var musicSrc = nextMusic.data('src');
-            console.log('选择了下一首音乐：' + musicSrc);
+            var nextSrc = nextMusic.data('src');
+            console.log('选择了下一首音乐：' + nextSrc);
             
             audio.pause();
             isPlaying = false;
-            $('#playPauseButton').removeClass("icon-zanting");
-            $('#playPauseButton').addClass("icon-bofang");
+            $('#playPauseButton').removeClass("icon-zanting").addClass("icon-bofang");
             
-            audio.src = musicSrc;
-            if (!isNaN(audio.duration) && isFinite(audio.duration) && audio.duration !== 0) {
-                audio.currentTime = (progressBar.value * audio.duration) / 100; // 设置音频播放位置
-            }
-            audio.play();
-            isPlaying = true;
-            $('#playPauseButton').removeClass("icon-bofang");
-            $('#playPauseButton').addClass("icon-zanting")
-            
-            musicList.removeClass('active'); // 先移除所有项的 active 类
-            nextMusic.addClass('active'); // 添加选中的音乐项的 active 类
+            playMusic(nextSrc);
+            nextMusic.addClass('active').siblings().removeClass('active'); // 设置选中效果
             $('#musicInfo').text(nextMusic.text()); // 更新音乐信息显示
         } else {
             console.log('已经是列表中的最后一首音乐');
@@ -189,12 +160,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 显示音量调节条
-    $('#volumeBar').on('mouseenter', function() {
+    $('#volumeButton').on('mouseenter', function() {
         $('#volumeBar').css('transform', 'scaleY(1)');
     });
 
     // 隐藏音量调节条
-    $('#volumeBar').on('mouseleave', function() {
+    $('#volumeButton').on('mouseleave', function() {
         $('#volumeBar').css('transform', 'scaleY(0)');
     });
 });
