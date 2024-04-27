@@ -3,8 +3,8 @@
     "id" : "H511EF98A", /*应用的标识*/
     "name" : "MyFreeMusicPlayer", /*应用名称，程序桌面图标名称*/
     "version" : {
-        "name" : "0.2.2", /*应用版本名称*/
-        "code" : 102
+        "name" : "0.2.3", /*应用版本名称*/
+        "code" : 103
     },
     "description" : "MyFreeMusicPlayer", /*应用描述信息*/
     "icons" : {
