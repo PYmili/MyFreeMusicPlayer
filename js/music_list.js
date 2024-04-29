@@ -1,34 +1,50 @@
-// 定义一个异步函数来读取配置数据
-async function readConfigData() {
-    try {
-        const response = await fetch('config/config.json');
-        if (!response.ok) {
-            throw new Error('配置文件读取失败');
-        }
-        return response.json();
-    } catch (error) {
-        console.error('读取配置数据时出错:', error);
-        return null;
-    }
+// 定义一个异步函数来使用Plus API读取配置数据
+async function readConfigDataWithPlusAPI() {
+    return new Promise((resolve, reject) => {
+        document.addEventListener('plusready', function() {
+            const filePath = 'config/config.json';
+            plus.io.resolveLocalFileSystemURL(filePath, function(entry) {
+                entry.file(function(file) {
+                    const reader = new plus.io.FileReader();
+                    reader.onloadend = function(e) {
+                        try {
+                            const configData = JSON.parse(this.result);
+                            resolve(configData);
+                        } catch (parseError) {
+                            reject(new Error('解析配置文件为JSON时出错: ' + parseError));
+                        }
+                    };
+                    reader.onerror = function(e) {
+                        reject(new Error('读取文件内容出错'));
+                    };
+                    reader.readAsText(file);
+                }, function(e) {
+                    reject(new Error('打开文件失败: ' + e.message));
+                });
+            }, function(e) {
+                reject(new Error('找不到指定文件: ' + e.message));
+            });
+        });
+    });
 }
 
 // 定义一个异步函数来获取音乐列表，使用POST请求
 async function fetchMusicList() {
-    const configData = await readConfigData();
-    if (!configData) {
-        console.error('配置数据不可用');
-        return;
-    }
-
-    const { origin, user: userName, key } = configData;
-    const apiUrl = `${origin}/get_my_music`;
-
-    const requestData = {
-        user_name: userName,
-        key: key
-    };
-
     try {
+        const configData = await readConfigDataWithPlusAPI();
+        if (!configData) {
+            console.error('配置数据不可用');
+            return;
+        }
+
+        const { origin, user: userName, key } = configData;
+        const apiUrl = `${origin}/get_my_music`;
+
+        const requestData = {
+            user_name: userName,
+            key: key
+        };
+
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -42,16 +58,14 @@ async function fetchMusicList() {
         }
 
         const result = await response.json();
-        if (result.code !== 200) { // 假设正常返回的状态码是200，根据实际情况调整
+        if (result.code !== 200) {
             throw new Error(`服务器返回错误: ${result.code}`);
         }
 
-        const musicList = result.content;
-
-        // 清空现有列表并填充新数据
         const musicListElement = document.querySelector('#musicList ul');
-        musicListElement.innerHTML = ''; // 清空现有列表项
+        musicListElement.innerHTML = ''; 
 
+        const musicList = result.content;
         musicList.forEach((track) => {
             if (track && track.music_name && track.music_url) {
                 const listItem = document.createElement('li');

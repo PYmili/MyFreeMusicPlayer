@@ -3,8 +3,8 @@
     "id" : "H511EF98A", /*应用的标识*/
     "name" : "MyFreeMusicPlayer", /*应用名称，程序桌面图标名称*/
     "version" : {
-        "name" : "0.2.3", /*应用版本名称*/
-        "code" : 103
+        "name" : "0.2.5", /*应用版本名称*/
+        "code" : 105
     },
     "description" : "MyFreeMusicPlayer", /*应用描述信息*/
     "icons" : {
@@ -143,7 +143,10 @@
                     "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
                     "<uses-feature android:name=\"android.hardware.camera\"/>",
                     "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>",
-                    "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>"
+                    "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>",
+                    "<uses-permission android:name=\"android.permission.INTERNET\" />",
+                    "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\" />",
+                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />"
                 ],
                 "abiFilters" : [ "armeabi-v7a", "arm64-v8a", "x86" ]
             },
@@ -239,7 +242,12 @@
                 "dSYMs" : false
             },
             "plugins" : {
-                "ad" : {}
+                "ad" : {},
+                "geolocation" : {
+                    "system" : {
+                        "__platform__" : [ "ios", "android" ]
+                    }
+                }
             }
         }
     },
